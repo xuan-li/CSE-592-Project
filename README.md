@@ -1,6 +1,7 @@
 # CSE-592-Project
 CSE 592 Project
 
-[Noisyopt: A Python library for optimizing noisy functions](https://github.com/andim/noisyopt)
+In this project, we will implement three paper, which can be found [here](https://github.com/xuan-li/CSE-592-Project/tree/master/Reference/Same%20Assumption)
+
 
 
