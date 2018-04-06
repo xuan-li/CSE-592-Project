@@ -103,7 +103,6 @@ def noisy_values(func, x, noise_generator, n, noise_mode="add"):
     '''
     value = func(x)[0,0]
     noise = noise_generator(n)
-    
     if (noise_mode == "add"):
         value += noise
     if (noise_mode == "multiply"):

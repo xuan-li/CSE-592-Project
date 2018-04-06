@@ -29,6 +29,7 @@ def V_function(alpha, eg, z, x, order=0):
 
 
 
+
 def ardfds(func, L, m, t, initial_x, maximum_iterations=1000, ardfds_eps=1e-5, newton_eps=1e-5):
     '''
     m:              batch size when computing gradient.
@@ -54,15 +55,44 @@ def ardfds(func, L, m, t, initial_x, maximum_iterations=1000, ardfds_eps=1e-5, n
         alpha = (k+2) / (96 * n * n * L)
         tau = 2 / (k + 2)
         e = sphere_point_G(1)
-        value = func(x,1)
-        print(value)
+        value = func(x,1)[0,0]
         gradient = approximate_gradient(func, x, e, t, m)
         x = tau * z + (1-tau) * y
         y = x - 1/(2* L) * gradient
         newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
-        z, newton_values, runtimes, xs = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
-        values.append(y)
-    return y[-100:].mean()
+        z, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
+        values.append(value)
+        xs.append(y)
+    return y
+
+
+def rdfds(func, L, m, t, initial_x, maximum_iterations=1000, newton_eps=1e-5):
+    '''
+    m:              batch size when computing gradient.
+    t:              smoothing parameter when computing gradient.
+    '''
+    
+    x = np.matrix(initial_x)
+    n = x.shape[0]
+    # initialization
+    values = []
+    runtimes = []
+    xs = []
+    start_time = time.time()
+    iterations = 0
+
+    sphere_point_G = sphere_point_generator(n)
+
+    for k in range(maximum_iterations):
+        alpha = 1 / (48 * n * L)
+        e = sphere_point_G(1)
+        value = func(x,1)[0,0]
+        gradient = approximate_gradient(func, x, e, t, m)
+        newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
+        x, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
+        values.append(value)
+        xs.append(x)
+    return x
 
 
 
