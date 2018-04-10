@@ -1,6 +1,6 @@
 # CSE-592-Project: Derivative-free Unconstrained Noisy Convex Optimization
 
-In this project, we will implement three paper, which can be found [here](https://github.com/xuan-li/CSE-592-Project/tree/master/Reference/Same%20Assumption):
+In this project, we will implement three papers:
 
 - [An Accelerated Method for Derivative-Free Smooth Stochastic Convex Optimization](https://github.com/xuan-li/CSE-592-Project/raw/master/Reference/An%20Accelerated%20Method%20for%20Derivative-Free%20Smooth%20Stochastic%20Convex%20Optimization.pdf)
 - [Randomized Derivative-Free Optimization of Noisy Convex Functions](https://github.com/xuan-li/CSE-592-Project/raw/master/Reference/Randomized%20Derivative-Free%20Optimization%20of%20Noisy%20Convex%20Functions.pdf)
