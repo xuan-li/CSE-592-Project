@@ -2,7 +2,7 @@
 
 In this project, we will implement three paper, which can be found [here](https://github.com/xuan-li/CSE-592-Project/tree/master/Reference/Same%20Assumption):
 
-- An Accelerated Method for Derivative-Free Smooth Stochastic Convex Optimization
+- [An Accelerated Method for Derivative-Free Smooth Stochastic Convex Optimization](Reference/An Accelerated Method for Derivative-Free Smooth Stochastic Convex Optimization.pdf)
 - Randomized Derivative-Free Optimization of Noisy Convex Functions
 - Stochastic First- and Zeroth-order Methods for Nonconvex Stochastic Programming
 
