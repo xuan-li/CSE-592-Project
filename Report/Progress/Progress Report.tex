@@ -1,0 +1,69 @@
+\documentclass[a4paper,twocolumn]{article}
+
+\usepackage{fullpage} % Package to use full page
+\usepackage{parskip} % Package to tweak paragraph skipping
+\usepackage{tikz} % Package for drawing
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+
+\title{CSE 592 Project: Gradient-Free Stochastic Unconstrained Convex Optimizations\\
+Progress Report}
+\author{Xuan Li, Xiaofei Sun, Shaohui Liu}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+In this project, we are going to implement three different methods for gradient-free  stochastic convex optimizations
+\cite{Chen2015RandomizedDO}\cite{Dv2018Accelerated}\cite{Ghadimi2013StochasticFA}.
+
+The problem we want to solve is stated as follows:
+\begin{equation}
+\min_{x\in \mathbb{R}^d} \mathbb{E}_\xi F(x,\xi)
+\end{equation}
+where $f(x) = \mathbb{E}_\xi F(x,\xi)$ is a convex function.
+
+We can think $f$ as the true function, $F$ as the noisy measure of that funtion. But we cannot access $f(x)$, we can only get noisy function values $F(x,\xi)$. 
+
+\section{Assumptions}
+These methods assume that the true gradient $\nabla {f}$ is $L$-Lipschitz. The Lipschitz constant appears as a parameter in step sizes. 
+
+Besides, the oracle assumptions are slightly different. There are two different assumptions:
+
+\textbf{One-point Feedbacks.} In this assumption, given a realization of $\xi$, we can measure once. That is, different measures must have different realization of $\xi$.
+
+\textbf{Two-point Feedbacks.} In this assumption, given a realization of $\xi$, we can measure on a pair of points. That is, given $(x, y)$, we can get two measures $F(x, \xi),F(y, \xi)$ with the same realization of $\xi$.
+
+ 
+\section{Basic Ideas}
+The three methods use a common technique: gradient estimation, but with different schemes. With estimated gradients, we can use first-order methods to update.
+
+The updating scheme are slightly different, two papers use gradient descend, and one paper uses mirror descend. 
+
+The proofs of bounds are based on the schemes to estimate gradients and the schemes to update.
+
+\section{Plan}
+
+In this project, we mainly focus on the implementations of these methods, and compare them on different oracles.
+
+The main steps of our project are as follows:
+\begin{enumerate}
+\item Each one in our group chooses a paper to read, figure out all assumptions, the method of gradient estimation, and the method to update.
+\item Each one implement one paper using the same code structures: similar APIs, similar styles, etc.
+\item Experiment to compare these different algorithms. The basic idea is to compare the convergence rates.
+\end{enumerate}
+
+
+
+
+
+
+
+
+
+
+\bibliography{reference} 
+\bibliographystyle{acm}
+\end{document}
