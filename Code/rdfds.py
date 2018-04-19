@@ -4,6 +4,12 @@ from generator import sphere_point_generator
 from newton import backtracking_line_search, newton
 import time
 
+def optimal_parameters(L, theta, n, sigma, epsilon):
+    N = int(np.sqrt(n * n * L * theta / epsilon ))
+    m = int(max(1, sigma * sigma / np.power(epsilon, 1.5) * np.sqrt(theta / L))/1000)
+    t = max(np.power(epsilon, 0.75) / np.sqrt(n) / np.sqrt(L*theta), epsilon / np.sqrt(n) / np.sqrt(L*theta))
+    return N, m, t
+
 def approximate_gradient(func, x, e, t, m):
     (f_te, f) = func([x+t*e, x], m)
     gradient = ((f_te - f)/t).mean() * e
@@ -26,16 +32,17 @@ def V_function(alpha, eg, z, x, order=0):
         gradient = alpha * n * eg + x-z
         hessian = np.identity(x.shape[0])
         return (value, gradient, hessian)
+        
 
-
-
-
-def ardfds(func, L, m, t, initial_x, maximum_iterations=1000, ardfds_eps=1e-5, newton_eps=1e-5):
+def ardfds(func, initial_x, L, m, t, maximum_iterations=1000, ardfds_eps=1e-5, newton_eps=1e-5):
     '''
     m:              batch size when computing gradient.
     t:              smoothing parameter when computing gradient.
     '''
-    
+    search_L = False
+    if not L:
+        search_L = True
+        L = 10
     if ardfds_eps <= 0:
         raise ValueError("Epsilon must be positive")
     x = np.matrix(initial_x)
@@ -46,6 +53,7 @@ def ardfds(func, L, m, t, initial_x, maximum_iterations=1000, ardfds_eps=1e-5, n
     values = []
     runtimes = []
     xs = []
+    xs.append(x)
     start_time = time.time()
     iterations = 0
 
@@ -63,10 +71,10 @@ def ardfds(func, L, m, t, initial_x, maximum_iterations=1000, ardfds_eps=1e-5, n
         z, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         values.append(value)
         xs.append(y)
-    return y
+    return y, xs
 
 
-def rdfds(func, L, m, t, initial_x, maximum_iterations=1000, newton_eps=1e-5):
+def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, newton_eps=1e-5):
     '''
     m:              batch size when computing gradient.
     t:              smoothing parameter when computing gradient.
@@ -78,6 +86,7 @@ def rdfds(func, L, m, t, initial_x, maximum_iterations=1000, newton_eps=1e-5):
     values = []
     runtimes = []
     xs = []
+    xs.append(x)
     start_time = time.time()
     iterations = 0
 
@@ -92,7 +101,7 @@ def rdfds(func, L, m, t, initial_x, maximum_iterations=1000, newton_eps=1e-5):
         x, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         values.append(value)
         xs.append(x)
-    return x
+    return x, xs
 
 
 

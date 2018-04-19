@@ -1,6 +1,6 @@
 import numpy as np
-
-
+from scipy.linalg import eigh as largest_eigh
+from numpy import exp
 
 def weird_func( x, order=0 ):
 
@@ -27,6 +27,7 @@ def weird_func( x, order=0 ):
 
 
 def boyd_example_func(x, order=0):
+
     a=np.matrix('1  3')
     b=np.matrix('1  -3')
     c=np.matrix('-1  0')
@@ -39,8 +40,8 @@ def boyd_example_func(x, order=0):
         gradient = a.T*exp(a*x-0.1)+b.T*exp(b*x-0.1)+c.T*exp(c*x-0.1)
         return (value, gradient)
     elif order==2:
-        gradient = a.T*exp(a*x-0.1)+b.T*exp(b*x-0.1)+c.T*exp(c*x-0.1)
-        hessian = a.T*a*exp(a*x-0.1)+b.T*b*exp(b*x-0.1)+c.T*c*exp(c*x-0.1)
+        gradient = a.T*exp(a*x-0.1)[0,0]+b.T*exp(b*x-0.1)[0,0]+c.T*exp(c*x-0.1)[0,0]
+        hessian = a.T*a*exp(a*x-0.1)[0,0]+b.T*b*exp(b*x-0.1)[0,0]+c.T*c*exp(c*x-0.1)[0,0]
         return (value, gradient, hessian)
     else:
         raise ValueError("The argument \"order\" should be 0, 1 or 2")
@@ -82,7 +83,7 @@ def sphere_function(x, n, order = 0):
         return (value, gradient)
     elif order == 2:
         gradient = x-0.2
-        hessian = H
+        hessian = np.identity(n)
         return (value, gradient, hessian)
     else:
         raise ValueError("The argument \"order\" should be 0, 1 or 2")
@@ -150,6 +151,23 @@ def noisy_function(func, x, noise_generator, n, noise_mode="add"):
 
 
 
+
+def compute_L(func,n):
+    # https://math.stackexchange.com/questions/1698812/lipschitz-constant-gradient-implies-bounded-eigenvalues-on-hessian
+    L = 0
+    def update_L(func, x, L, beta = 0.9):
+        value, gradient, hessian = func(x, 2)
+        # largest eigen value
+        # https://stackoverflow.com/questions/12167654/fastest-way-to-compute-k-largest-eigenvalues-and-corresponding-eigenvectors-with
+        evals_large, _ = largest_eigh(hessian, eigvals=(n-1,n-1))
+        return max([L, evals_large[0]])
+
+    bound = 100
+    size = 10000
+    rvs = np.asmatrix(np.random.uniform(low = -bound, high = bound, size = (n, size)))
+    for i in range(size):
+        L = update_L(func, rvs[:,i], L)
+    return L
 
 
 

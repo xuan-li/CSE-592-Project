@@ -10,6 +10,13 @@ def sphere_point_generator(ndim):
         return np.asmatrix(vec)
     return lambda npoints: sample_spherical(npoints)
 
+def gaussian_point_generator(ndim):
+    def sample_gaussian(npoints):
+        vec = np.random.normal(loc=0.0, scale=1, size=(ndim, npoints))
+        vec /= np.linalg.norm(vec, axis=0)
+        return np.asmatrix(vec)
+    return lambda npoints: sample_gaussian(npoints)
+
 def gaussian_noise_generator(scale):
     def sample_spherical(npoints):
         vec = np.random.normal(loc=0.0, scale=scale, size=npoints)

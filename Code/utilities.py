@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import time
 from math import exp
 
+def plot_real_values(real_func, xs, fig, label = None, output = None):
+    values = np.array(list(map(lambda x: real_func(x)[0,0], xs)))
+    plt.plot(values, label=label)
+
 
 def draw_contour( func, gd_xs, newton_xs, fig, levels=np.arange(5, 1000, 10), x=np.arange(-5, 5.1, 0.05), y=np.arange(-5, 5.1, 0.05)):
     """ 
