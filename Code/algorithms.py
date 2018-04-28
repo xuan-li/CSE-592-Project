@@ -1,6 +1,7 @@
 import numpy as np
 from functions import noisy_paired_values
 from generator import sphere_point_generator
+from generator import gaussian_point_generator
 from newton import backtracking_line_search, newton
 import time
 
@@ -43,7 +44,7 @@ def V_function(alpha, eg, z, x, order=0):
         
 
 
-def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generator = None, newton_eps=1e-5):
+def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, feedback = 2, direction_generator = None, newton_eps=1e-5):
     '''
     m:              batch size when computing gradient.
     t:              smoothing parameter when computing gradient.
@@ -63,7 +64,7 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generat
         alpha = (k+2) / (96 * n * n * L)
         tau = 2 / (k + 2)
         e = direction_generator(1)
-        gradient = approximate_gradient(func, x, e, t, m, 2)
+        gradient = approximate_gradient(func, x, e, t, m, feedback)
         x = tau * z + (1-tau) * y
         y = x - 1/(2* L) * gradient
         newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
@@ -72,7 +73,7 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generat
     return y, xs
 
 
-def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator = None, newton_eps=1e-5):
+def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, feedback = 2, direction_generator = None, newton_eps=1e-5):
     '''
     m:              batch size when computing gradient.
     t:              smoothing parameter when computing gradient.
@@ -90,14 +91,14 @@ def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator
     for k in range(maximum_iterations):
         alpha = 1 / (48 * n * L)
         e = direction_generator(1)
-        gradient = approximate_gradient(func, x, e, t, m, 2)
+        gradient = approximate_gradient(func, x, e, t, m, feedback)
         newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
         x, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         xs.append(x)
     return x, xs
 
 
-def stars(func, initial_x, L, m, mu, maximum_iterations=1000, noise_mode=0, direction_generator = None):
+def rg(func, initial_x, L, m, mu, maximum_iterations=1000, feedback=1, direction_generator = None):
     '''
     m:              batch size when computing gradient.
     mu:              smoothing parameter when computing gradient.
@@ -111,68 +112,59 @@ def stars(func, initial_x, L, m, mu, maximum_iterations=1000, noise_mode=0, dire
     xs.append(x)
 
     if not direction_generator:
-        direction_generator = sphere_point_generator(n)
+        direction_generator = gaussian_point_generator(n)
     h = 1./(4*L*(n+4))
-    # print(1./(4*L*(n+4)))
 
-    if noise_mode == 0: #Additive noise
-        for k in range(maximum_iterations):
-            e = direction_generator(1)
-            gradient = approximate_gradient(func, x, e, mu, m, 1)
-            x = x - h*gradient
-            xs.append(x)
-            # print(x)
-        return x,xs
-
-    if noise_mode == 1:
-        for k in range(maximum_iterations):
-            e = direction_generator(1)
-            f = func(x, m)
-            fx = f.mean()
-            mu1 = mu*np.power(np.abs(fx),0.5)
-            gradient = approximate_gradient(func, x, e, mu1, m, 1)
-            x = x - h*gradient
-            xs.append(x)
-        return x,xs
-
-def rg(func, initial_x, L, m, mu, maximum_iterations=1000, noise_mode=0, direction_generator = None):
-    '''
-    m:              batch size when computing gradient.
-    mu:              smoothing parameter when computing gradient.
-    '''
-    
-    x = np.matrix(initial_x)
-    n = x.shape[0]
-
-    # initialization
-    xs = []
-    xs.append(x)
-
-    if not direction_generator:
-        direction_generator = sphere_point_generator(n)
-    h = 1./(4*L*(n+4))
-    # print(1./(4*L*(n+4)))
-
-    if noise_mode == 0: #Additive noise
-        for k in range(maximum_iterations):
-            e = direction_generator(1)
-            gradient = approximate_gradient(func, x, e, mu, m, 2)
-            x = x - h*gradient
-            xs.append(x)
-            # print(x)
-        return x,xs
-
-    if noise_mode == 1:
-        for k in range(maximum_iterations):
-            e = direction_generator(1)
-            f = func(x, m)
-            fx = f.mean()
-            mu1 = mu*np.power(np.abs(fx),0.5)
-            gradient = approximate_gradient(func, x, e, mu1, m, 2)
-            x = x - h*gradient
-            xs.append(x)
-        return x,xs
+    for k in range(maximum_iterations):
+        e = direction_generator(1)
+        gradient = approximate_gradient(func, x, e, mu, m, feedback)
+        x = x - h*gradient
+        xs.append(x)
+        # print(x)
+    return x,xs
         
+
+def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 1, feedback=2, direction_generator = None, two_phase = False):
+    '''
+    m:              batch size when computing gradient.
+    mu:              smoothing parameter when computing gradient.
+    '''
+    
+    x = np.matrix(initial_x)
+    n = x.shape[0]
+
+    # initialization
+    xs = []
+    xs.append(x)
+
+    if not direction_generator:
+        direction_generator = gaussian_point_generator(n)
+
+    h = 1 / np.sqrt(n+4) * min(1/(4 * L * sqrt(n+4)), initial_stepsize / np.sqrt(maximum_iterations))
+    
+    for k in range(maximum_iterations):
+
+        e = direction_generator(1)
+        gradient = approximate_gradient(func, x, e, mu, 1, feedback)
+        x = x - h*gradient
+        xs.append(x)
+        # print(x)
+
+    if two_phase:
+
+        min_norm = float('inf')
+        final_x
+        for y in xs:
+            gradient = approximate_gradient(func, y, e, mu, m, feedback)
+            norm = (gradient.T * gradient)[0,0]
+            if norm < min_norm:
+                min_norm = norm
+                final_x = y
+
+        x = final_x
+        xs.append(final_x)
+
+    return x,xs
 
 
 
