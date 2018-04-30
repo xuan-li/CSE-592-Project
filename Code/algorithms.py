@@ -140,7 +140,7 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
     if not direction_generator:
         direction_generator = gaussian_point_generator(n)
 
-    h = 1 / np.sqrt(n+4) * min(1/(4 * L * sqrt(n+4)), initial_stepsize / np.sqrt(maximum_iterations))
+    h = 1 / np.sqrt(n+4) * min(1/(4 * L * np.sqrt(n+4)), initial_stepsize / np.sqrt(maximum_iterations))
     
     for k in range(maximum_iterations):
 
@@ -153,7 +153,7 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
     if two_phase:
 
         min_norm = float('inf')
-        final_x
+        final_x = None
         for y in xs:
             gradient = approximate_gradient(func, y, e, mu, m, feedback)
             norm = (gradient.T * gradient)[0,0]
