@@ -6,7 +6,7 @@ from newton import backtracking_line_search, newton
 import time
 
 
-def approximate_gradient(func, x, direction, t, m, mode = 2):
+def approximate_gradient(func, x, direction_generator, t, m, mode = 2):
     '''
     direction: direction vector
     t: smooth parameter
@@ -14,6 +14,7 @@ def approximate_gradient(func, x, direction, t, m, mode = 2):
     mode: 2 - two-point feedback
           1 - one-point feedback
     '''
+    direction = direction_generator(1)
     if mode == 2:
         (f_te, f) = func([x+t*direction, x], m)
     else:
@@ -31,11 +32,13 @@ def approximate_gradient_multi_direction(func, x, direction_generator, t, m):
           1 - one-point feedback
     '''
     directions = direction_generator(m)
-    gradients = []
+    gradient = 0
     for i in range(m):
-        (f_te, f) = func([x+t*directions[:,i], x], m)
-        gradient = (f_te - f)/t * direction
-    return gradient
+
+        direction = directions[:,i]
+        (f_te, f) = func([x+t*direction, x], 1)
+        gradient += (f_te - f).mean()/t * direction
+    return gradient / m
 
 
 
@@ -78,8 +81,7 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, feedback = 2, dir
     for k in range(maximum_iterations):
         alpha = (k+2) / (96 * n * n * L)
         tau = 2 / (k + 2)
-        e = direction_generator(1)
-        gradient = approximate_gradient(func, x, e, t, m, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, t, m, feedback)
         x = tau * z + (1-tau) * y
         y = x - 1/(2* L) * gradient
         newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
@@ -105,15 +107,14 @@ def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, feedback = 2, direc
 
     for k in range(maximum_iterations):
         alpha = 1 / (48 * n * L)
-        e = direction_generator(1)
-        gradient = approximate_gradient(func, x, e, t, m, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, t, m, feedback)
         newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
         x, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         xs.append(x)
     return x, xs
 
 
-def rg(func, initial_x, L, m, mu, maximum_iterations=1000, feedback=1, direction_generator = None):
+def rg(func, initial_x, L, m, mu, maximum_iterations=1000, feedback=2, direction_generator = None):
     '''
     m:              batch size when computing gradient.
     mu:              smoothing parameter when computing gradient.
@@ -131,8 +132,7 @@ def rg(func, initial_x, L, m, mu, maximum_iterations=1000, feedback=1, direction
     h = 1./(4*L*(n+4))
 
     for k in range(maximum_iterations):
-        e = direction_generator(1)
-        gradient = approximate_gradient(func, x, e, mu, m, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, mu, m, feedback)
         x = x - h*gradient
         xs.append(x)
         # print(x)
@@ -158,24 +158,21 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
     h = 1 / np.sqrt(n+4) * min(1/(4 * L * np.sqrt(n+4)), initial_stepsize / np.sqrt(maximum_iterations))
     
     for k in range(maximum_iterations):
-
-        e = direction_generator(1)
-        gradient = approximate_gradient(func, x, e, mu, 1, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, mu, 1, feedback)
         x = x - h*gradient
         xs.append(x)
-        # print(x)
 
     if two_phase:
-
         min_norm = float('inf')
         final_x = None
+        i = 0
         for y in xs:
-            gradient = approximate_gradient(func, y, e, mu, m, feedback)
+            i +=1
+            gradient = approximate_gradient_multi_direction(func, x, direction_generator, mu, m)
             norm = (gradient.T * gradient)[0,0]
             if norm < min_norm:
                 min_norm = norm
                 final_x = y
-
         x = final_x
         xs.append(final_x)
 

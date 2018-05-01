@@ -93,9 +93,16 @@ def nesterov_function(x, order = 0):
     x = np.asmatrix(x)
     y = np.vstack((x,np.zeros((1,1))))
     z = np.vstack((np.zeros((1,1)), x))
-    value = np.sum(np.power(z - y,2)) * 0.5 - x[0,0]
-    
-    return value
+    diff = (z - y)
+    value = diff.T * diff * 0.5 - x[0,0]
+    if order == 0:
+        return np.asmatrix(value)
+    elif order == 2:
+        diag1 = np.ones(x.shape[0])
+        diag2 = np.ones(x.shape[0]-1)
+        hessian = 2 * np.diag(diag1) - np.diag(diag2,1) - np.diag(diag2,-1)
+
+        return (value,None,hessian)
 
 def noisy_values(func, x, noise_generator, n, noise_mode="add"):
     '''
@@ -158,8 +165,6 @@ def noisy_function(func, x, noise_generator, n, noise_mode="add"):
         return noisy_paired_values(func, x[0],x[1], noise_generator,n,noise_mode )
 
 
-
-
 def compute_L(func,n):
     # https://math.stackexchange.com/questions/1698812/lipschitz-constant-gradient-implies-bounded-eigenvalues-on-hessian
     L = 0
@@ -178,7 +183,6 @@ def compute_L(func,n):
     return L
 
 
-
 if __name__ == '__main__':
     x = np.matrix("[1;2;3;4;5;6]")
-    print(nesterov_function(x))
+    print(nesterov_function(x,2))
