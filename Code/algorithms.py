@@ -87,7 +87,7 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generat
         x = tau * z + (1-tau) * y
         y = x - 1/(2* L) * gradient
         newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
-        z, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
+        z, newton_values, _, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         xs.append(y.copy())
         runtimes.append(time.time() - start_time)
     return y, xs ,runtimes,"ARDFDS"
@@ -116,7 +116,7 @@ def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator
         alpha = 1 / (48 * n * L)
         gradient = approximate_gradient(func, x, direction_generator, t, m, 2)
         newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
-        x, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
+        x, newton_values, _, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         xs.append(x.copy())
         runtimes.append(time.time() - start_time)
     return x,xs,runtimes,"RDFDS"
