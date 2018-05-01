@@ -73,8 +73,10 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generat
     n = x.shape[0]
     # initialization
     xs = []
-    xs.append(x)
-
+    xs.append(x.copy())
+    runtimes = []
+    start_time = time.time()
+    runtimes.append(time.time() - start_time)
     if not direction_generator:
         direction_generator = sphere_point_generator(n)
 
@@ -86,8 +88,9 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generat
         y = x - 1/(2* L) * gradient
         newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
         z, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
-        xs.append(y)
-    return y, xs
+        xs.append(y.copy())
+        runtimes.append(time.time() - start_time)
+    return y, xs ,runtimes,"ARDFDS"
 
 
 def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator = None, newton_eps=1e-5):
@@ -100,7 +103,11 @@ def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator
     n = x.shape[0]
     # initialization
     xs = []
-    xs.append(x)
+    xs.append(x.copy())
+
+    runtimes = []
+    start_time = time.time()
+    runtimes.append(time.time() - start_time)
 
     if not direction_generator:
         direction_generator = sphere_point_generator(n)
@@ -110,8 +117,9 @@ def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator
         gradient = approximate_gradient(func, x, direction_generator, t, m, 2)
         newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
         x, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
-        xs.append(x)
-    return x, xs
+        xs.append(x.copy())
+        runtimes.append(time.time() - start_time)
+    return x,xs,runtimes,"RDFDS"
 
 
 def rg(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generator = None):
@@ -125,7 +133,10 @@ def rg(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generator =
 
     # initialization
     xs = []
-    xs.append(x)
+    xs.append(x.copy())
+    runtimes = []
+    start_time = time.time()
+    runtimes.append(time.time() - start_time)
 
     if not direction_generator:
         direction_generator = gaussian_point_generator(n)
@@ -134,9 +145,9 @@ def rg(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generator =
     for k in range(maximum_iterations):
         gradient = approximate_gradient(func, x, direction_generator, mu, m, 2)
         x = x - h*gradient
-        xs.append(x)
-        # print(x)
-    return x,xs
+        xs.append(x.copy())
+        runtimes.append(time.time() - start_time)
+    return x,xs,runtimes,"RG"
 
 
 def stars(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generator = None):
@@ -150,7 +161,10 @@ def stars(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generato
 
     # initialization
     xs = []
-    xs.append(x)
+    xs.append(x.copy())
+    runtimes = []
+    start_time = time.time()
+    runtimes.append(time.time() - start_time)
 
     if not direction_generator:
         direction_generator = gaussian_point_generator(n)
@@ -159,9 +173,10 @@ def stars(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generato
     for k in range(maximum_iterations):
         gradient = approximate_gradient(func, x, direction_generator, mu, m, 1)
         x = x - h*gradient
-        xs.append(x)
+        xs.append(x.copy())
+        runtimes.append(time.time() - start_time)
 
-    return x,xs
+    return x,xs,runtimes,"STARS"
         
 
 def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 1, direction_generator = None, two_phase = False):
@@ -175,7 +190,10 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
 
     # initialization
     xs = []
-    xs.append(x)
+    xs.append(x.copy())
+    runtimes = []
+    start_time = time.time()
+    runtimes.append(time.time() - start_time)
 
     if not direction_generator:
         direction_generator = gaussian_point_generator(n)
@@ -185,8 +203,10 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
     for k in range(maximum_iterations):
         gradient = approximate_gradient(func, x, direction_generator, mu, 1, 2)
         x = x - h*gradient
-        xs.append(x)
+        xs.append(x.copy())
+        runtimes.append(time.time() - start_time)
 
+    '''
     if two_phase:
         min_norm = float('inf')
         final_x = None
@@ -200,8 +220,9 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
                 final_x = y
         x = final_x
         xs.append(final_x)
+    '''
 
-    return x,xs
+    return x,xs,runtimes,"RSGF"
 
 
 

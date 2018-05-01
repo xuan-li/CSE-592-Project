@@ -24,13 +24,13 @@ initial_x = np.matrix('100;100')
 N = 1000
 m = 100
 t = 1e-2
-t1 = 1e-3
+t1 = 1e-4
 n = initial_x.shape[0]
 L = compute_L(func, n)
 direction_G1 = sphere_point_generator(n)
 direction_G2 = gaussian_point_generator(n)
 #x0, xs0 = alg.ardfds(noisy_func, initial_x, L, m, t, N, feedback = 2, direction_generator = direction_G1)
-x1, xs1 = alg.rsgf(
+x1, xs1,time2 = alg.rsgf(
     noisy_func,
     initial_x,
     L,
@@ -38,12 +38,11 @@ x1, xs1 = alg.rsgf(
     t1,
     N,
     initial_stepsize = 100,
-    feedback=2,
     direction_generator=direction_G1,
     two_phase=False)
-x2, xs2 = alg.rg(noisy_func, initial_x, L, 1, t, N, feedback = 1, direction_generator = direction_G2)
+x2, xs2,time2 = alg.rg(noisy_func, initial_x, L, 1, t, N,  direction_generator = direction_G2)
 print("final x\n", x1)
-x3, xs3 = alg.rg(noisy_func, initial_x, L, 1, t, N, feedback = 2, direction_generator = direction_G2)
+x3, xs3,time2 = alg.stars(noisy_func, initial_x, L, 1, t, N,  direction_generator = direction_G2)
 print("final x\n", x3)
 #print("final value\n", noisy_func(x,100000).mean())
 fig = plt.figure()
