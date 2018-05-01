@@ -22,6 +22,21 @@ def approximate_gradient(func, x, direction, t, m, mode = 2):
     gradient = ((f_te - f)/t).mean() * direction
     return gradient
 
+def approximate_gradient_multi_direction(func, x, direction_generator, t, m):
+    '''
+    direction: direction vector
+    t: smooth parameter
+    m: batch size
+    mode: 2 - two-point feedback
+          1 - one-point feedback
+    '''
+    directions = direction_generator(m)
+    gradients = []
+    for i in range(m):
+        (f_te, f) = func([x+t*directions[:,i], x], m)
+        gradient = (f_te - f)/t * direction
+    return gradient
+
 
 
 def V_function(alpha, eg, z, x, order=0):

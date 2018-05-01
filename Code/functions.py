@@ -89,6 +89,14 @@ def sphere_function(x, n, order = 0):
         raise ValueError("The argument \"order\" should be 0, 1 or 2")
 
 
+def nesterov_function(x, order = 0):
+    x = np.asmatrix(x)
+    y = np.vstack((x,np.zeros((1,1))))
+    z = np.vstack((np.zeros((1,1)), x))
+    value = np.sum(np.power(z - y,2)) * 0.5 - x[0,0]
+    
+    return value
+
 def noisy_values(func, x, noise_generator, n, noise_mode="add"):
     '''
     This functions assumes that we have one-point feedback, 
@@ -171,6 +179,6 @@ def compute_L(func,n):
 
 
 
-
-
-
+if __name__ == '__main__':
+    x = np.matrix("[1;2;3;4;5;6]")
+    print(nesterov_function(x))
