@@ -37,6 +37,7 @@ x1, xs1 = alg.rsgf(
     m,
     t1,
     N,
+    initial_stepsize = 100,
     feedback=2,
     direction_generator=direction_G1,
     two_phase=False)

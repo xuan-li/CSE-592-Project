@@ -62,7 +62,7 @@ def V_function(alpha, eg, z, x, order=0):
         
 
 
-def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, feedback = 2, direction_generator = None, newton_eps=1e-5):
+def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generator = None, newton_eps=1e-5):
     '''
     m:              batch size when computing gradient.
     t:              smoothing parameter when computing gradient.
@@ -81,7 +81,7 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, feedback = 2, dir
     for k in range(maximum_iterations):
         alpha = (k+2) / (96 * n * n * L)
         tau = 2 / (k + 2)
-        gradient = approximate_gradient(func, x, direction_generator, t, m, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, t, m, 2)
         x = tau * z + (1-tau) * y
         y = x - 1/(2* L) * gradient
         newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
@@ -90,7 +90,7 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, feedback = 2, dir
     return y, xs
 
 
-def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, feedback = 2, direction_generator = None, newton_eps=1e-5):
+def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator = None, newton_eps=1e-5):
     '''
     m:              batch size when computing gradient.
     t:              smoothing parameter when computing gradient.
@@ -107,14 +107,14 @@ def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, feedback = 2, direc
 
     for k in range(maximum_iterations):
         alpha = 1 / (48 * n * L)
-        gradient = approximate_gradient(func, x, direction_generator, t, m, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, t, m, 2)
         newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
         x, newton_values, runtimes, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         xs.append(x)
     return x, xs
 
 
-def rg(func, initial_x, L, m, mu, maximum_iterations=1000, feedback=2, direction_generator = None):
+def rg(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generator = None):
     '''
     m:              batch size when computing gradient.
     mu:              smoothing parameter when computing gradient.
@@ -132,14 +132,39 @@ def rg(func, initial_x, L, m, mu, maximum_iterations=1000, feedback=2, direction
     h = 1./(4*L*(n+4))
 
     for k in range(maximum_iterations):
-        gradient = approximate_gradient(func, x, direction_generator, mu, m, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, mu, m, 2)
         x = x - h*gradient
         xs.append(x)
         # print(x)
     return x,xs
+
+
+def stars(func, initial_x, L, m, mu, maximum_iterations=1000, direction_generator = None):
+    '''
+    m:              batch size when computing gradient.
+    mu:              smoothing parameter when computing gradient.
+    '''
+    
+    x = np.matrix(initial_x)
+    n = x.shape[0]
+
+    # initialization
+    xs = []
+    xs.append(x)
+
+    if not direction_generator:
+        direction_generator = gaussian_point_generator(n)
+    h = 1./(4*L*(n+4))
+
+    for k in range(maximum_iterations):
+        gradient = approximate_gradient(func, x, direction_generator, mu, m, 1)
+        x = x - h*gradient
+        xs.append(x)
+
+    return x,xs
         
 
-def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 1, feedback=2, direction_generator = None, two_phase = False):
+def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 1, direction_generator = None, two_phase = False):
     '''
     m:              batch size when computing gradient.
     mu:              smoothing parameter when computing gradient.
@@ -158,7 +183,7 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
     h = 1 / np.sqrt(n+4) * min(1/(4 * L * np.sqrt(n+4)), initial_stepsize / np.sqrt(maximum_iterations))
     
     for k in range(maximum_iterations):
-        gradient = approximate_gradient(func, x, direction_generator, mu, 1, feedback)
+        gradient = approximate_gradient(func, x, direction_generator, mu, 1, 2)
         x = x - h*gradient
         xs.append(x)
 
