@@ -10,14 +10,13 @@ import numpy as np
 from utilities import plot_real_values
 import matplotlib.pyplot as plt
 
-
 sigma = 1e-2
 noise_G = gaussian_noise_generator(sigma)
 #func = lambda x, order=0: sphere_function(x, 2, order)
-H = np.matrix('10 0; 0 40');
+H = np.matrix('10 0; 0 40')
 # the vector of linear coefficient of the quadratic function
 b = np.matrix('0; 0')
-func = lambda x, order=0: quadratic( H, b, x, order )
+func = lambda x, order=0: quadratic(H, b, x, order)
 noisy_func = lambda x, n: noisy_function(func, x, noise_G, n, noise_mode="multiply")
 initial_x = np.matrix('100;100')
 N = 10000
@@ -28,7 +27,16 @@ L = compute_L(func, n)
 direction_G1 = sphere_point_generator(n)
 direction_G2 = gaussian_point_generator(n)
 #x0, xs0 = alg.rdfds(noisy_func, initial_x, L, m, t, N, feedback = 2, direction_generator = direction_G1)
-x1, xs1 = alg.rsgf(noisy_func, initial_x, L, m, t, N, feedback = 2, direction_generator = direction_G1, two_phase = True)
+x1, xs1 = alg.rsgf(
+    noisy_func,
+    initial_x,
+    L,
+    m,
+    t,
+    N,
+    feedback=2,
+    direction_generator=direction_G1,
+    two_phase=True)
 #x2, xs2 = alg.rg(noisy_func, initial_x, L, m, t, N, feedback = 1, direction_generator = direction_G2)
 print("final x\n", x1)
 #print("final value\n", noisy_func(x,100000).mean())
