@@ -104,7 +104,7 @@ def nesterov_function(x, order = 0):
 
         return (value,None,hessian)
 
-def noisy_values(func, x, noise_generator, n, noise_mode="add"):
+def noisy_values(func, x, noise_generator, n, explicit_noise = None, noise_mode="add"):
     '''
     This functions assumes that we have one-point feedback, 
       that is, with one noise, we can only evaluate at one points
@@ -118,7 +118,10 @@ def noisy_values(func, x, noise_generator, n, noise_mode="add"):
     return shape (1,n)
     '''
     value = func(x)[0,0]
-    noise = noise_generator(n)
+    if not explicit_noise:
+        noise = noise_generator(n)
+    else:
+        noise = explicit_noise
     if (noise_mode == "add"):
         value += noise
     if (noise_mode == "multiply"):
@@ -157,9 +160,9 @@ def noisy_paired_values(func, x,y, noise_generator, n, noise_mode="add"):
     return noisy_values
 
 
-def noisy_function(func, x, noise_generator, n, noise_mode="add"):
+def noisy_function(func, x, noise_generator, n, explicit_noise = None, noise_mode="add"):
     if "list" not in str(type(x)):
-        return noisy_values(func, x, noise_generator,n,noise_mode)
+        return noisy_values(func, x, noise_generator,n,explicit_noise = explicit_noise, noise_mode=noise_mode)
     else :
         assert(len(x) == 2)
         return noisy_paired_values(func, x[0],x[1], noise_generator,n,noise_mode )
