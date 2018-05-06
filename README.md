@@ -1,4 +1,4 @@
-# CSE-592-Project: Derivative-free Unconstrained Noisy Convex Optimization
+# CSE-592-Project: Gradient-free Stochastic Convex Unconstrained Optimization
 
 In this project, we will implement three papers:
 
