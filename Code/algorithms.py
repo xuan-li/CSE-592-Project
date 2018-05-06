@@ -225,21 +225,6 @@ def rsgf(func, initial_x, L, m, mu, maximum_iterations=1000, initial_stepsize = 
         xs.append(x.copy())
         runtimes.append(time.time() - start_time)
 
-    '''
-    if two_phase:
-        min_norm = float('inf')
-        final_x = None
-        i = 0
-        for y in xs:
-            i +=1
-            gradient = approximate_gradient_multi_direction(func, x, direction_generator, mu, m)
-            norm = (gradient.T * gradient)[0,0]
-            if norm < min_norm:
-                min_norm = norm
-                final_x = y
-        x = final_x
-        xs.append(final_x)
-    '''
 
     return x,xs,runtimes,"RSGF"
 
