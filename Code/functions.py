@@ -2,29 +2,30 @@ import numpy as np
 from scipy.linalg import eigh as largest_eigh
 from numpy import exp
 
-def weird_func( x, order=0 ):
-
-    # f(x) = x^4 + 6x^2 + 12(x-4)e^(x-1)
-    value = pow(x, 4) + 6 * pow(x, 2) + 12 * (x - 4) * exp(x - 1)
-    
-    if order==0:
+def bell_curve(x, order = 0):
+    x=np.asmatrix(x)
+    if order == 0:
+        if x.T * x < 1e-100:
+            return 0
+        value = np.exp(-1/(x.T * x))
         return value
-    elif order==1:
-        # f'(x) = 4x^3 + 12x + 12(x-3)e^(x-1)
-        gradient = 4 * pow(x, 3) + 12 * x + 12 * (x - 3) * exp(x - 1)
-
+    elif order == 1:
+        if x.T * x < 1e-100:
+            return (0,0)
+        value = np.exp(-1/(x.T * x))
+        gradient = (2 * value[0,0] / np.power((x.T * x))[0,0],2) * x
         return (value, gradient)
-    elif order==2:
-        # f'(x) = 4x^3 + 12x + 12(x-3)e^(x-1)
-        gradient = 4 * pow(x, 3) + 12 * x + 12 * (x - 3) * exp(x - 1)
-
-        # f''(x)= 12 (1 + e^(-1 + x) (-2 + x) + x^2)
-        hessian = 12 * (1 + (x-2) * exp(x-1) + pow(x,2))
-
-        return (value, gradient, hessian)
-    else:
-        raise ValueError("The argument \"order\" should be 0, 1 or 2")
-
+    elif order == 2:
+        if x.T * x < 1e-100:
+            return (0,0,0)
+        value = np.exp(-1/(x.T * x))
+        gradient = None
+        S = np.matrix([[-x[1,0]/x[0,0], x[0,0]/x[1,0]],
+                       [1,1]])
+        J = np.matrix([[2 * value[0,0] / np.power((x.T * x)[0,0],2),0],
+                       [0, value[0,0] * (-6 / np.power((x.T * x)[0,0],2) + 4 / np.power((x.T * x)[0,0],3))]])
+        hessian = S * J * S.I
+        return value, gradient, hessian
 
 def boyd_example_func(x, order=0):
 
@@ -168,7 +169,7 @@ def noisy_function(func, x, noise_generator, n, explicit_noise = None, noise_mod
         return noisy_paired_values(func, x[0],x[1], noise_generator,n,noise_mode )
 
 
-def compute_L(func,n):
+def compute_L(func,n, bound = 100):
     # https://math.stackexchange.com/questions/1698812/lipschitz-constant-gradient-implies-bounded-eigenvalues-on-hessian
     L = 0
     def update_L(func, x, L, beta = 0.9):
@@ -176,9 +177,9 @@ def compute_L(func,n):
         # largest eigen value
         # https://stackoverflow.com/questions/12167654/fastest-way-to-compute-k-largest-eigenvalues-and-corresponding-eigenvectors-with
         evals_large, _ = largest_eigh(hessian, eigvals=(n-1,n-1))
-        return max([L, evals_large[0]])
+        evals_small, _ = largest_eigh(hessian, eigvals=(0,0))
+        return max([L, abs(evals_large[0]), abs(evals_small[0])])
 
-    bound = 100
     size = 10000
     rvs = np.asmatrix(np.random.uniform(low = -bound, high = bound, size = (n, size)))
     for i in range(size):
