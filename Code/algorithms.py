@@ -72,7 +72,9 @@ def V_function(alpha, eg, z, x, order=0):
         hessian = np.identity(x.shape[0])
         return (value, gradient, hessian)
         
-
+def mirror_descent(x, gradient, step_size):
+    V = x - step_size * gradient
+    return V
 
 def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generator = None, newton_eps=1e-5):
     '''
@@ -98,8 +100,9 @@ def ardfds(func, initial_x,  L, m, t, maximum_iterations=1000, direction_generat
         gradient = approximate_gradient(func, x, direction_generator, t, m)
         x = tau * z + (1-tau) * y
         y = x - 1/(2* L) * gradient
-        newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
-        z, newton_values, _, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
+        z = mirror_descent(z, gradient, alpha * n)
+        #newton_f = lambda x, order: V_function(alpha, gradient, z, x, order)
+        #z, newton_values, _, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
         xs.append(y.copy())
         runtimes.append(time.time() - start_time)
     return y, xs ,runtimes,"ARDFDS"
@@ -127,8 +130,9 @@ def rdfds(func, initial_x, L, m, t, maximum_iterations=1000, direction_generator
     for k in range(maximum_iterations):
         alpha = 1 / (48 * n * L)
         gradient = approximate_gradient(func, x, direction_generator, t, m)
-        newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
-        x, newton_values, _, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
+        #newton_f = lambda z, order: V_function(alpha, gradient, x, z, order)
+        #x, newton_values, _, _ = newton( newton_f, x, newton_eps, 100, backtracking_line_search)
+        x = mirror_descent(x, gradient, alpha * n)
         xs.append(x.copy())
         runtimes.append(time.time() - start_time)
     return x,xs,runtimes,"RDFDS"
